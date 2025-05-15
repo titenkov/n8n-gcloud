@@ -1,0 +1,43 @@
+# Copy this file to terraform.tfvars and fill in your values
+# NEVER commit terraform.tfvars to git (it contains secrets)
+
+# -----------------------------------------------------------------------------
+# Required
+# -----------------------------------------------------------------------------
+
+# Your Google Cloud project ID
+gcp_project_id = "your-gcp-project-id"
+
+# PostgreSQL connection URL from NeonDB or Supabase
+# Format: postgresql://user:password@host:port/database?sslmode=require
+database_url = "postgresql://user:password@host.neon.tech:5432/n8n?sslmode=require"
+
+# Encryption key for n8n credentials storage
+# Generate with: openssl rand -hex 32
+n8n_encryption_key = "your-generated-encryption-key"
+
+# -----------------------------------------------------------------------------
+# Optional - Uncomment and modify as needed
+# -----------------------------------------------------------------------------
+
+# GCP region (default: europe-west1)
+# gcp_region = "us-central1"
+
+# Cloud Run service name (default: n8n)
+# service_name = "n8n"
+
+# Resource limits (defaults: 1 CPU, 1Gi memory)
+# cloud_run_cpu = "2"
+# cloud_run_memory = "2Gi"
+
+# Scaling (default: 0-1 instances, scale to zero enabled)
+# cloud_run_min_instances = 1  # Keep always warm (costs more)
+# cloud_run_max_instances = 3
+
+# Timezone (default: UTC)
+# timezone = "Europe/Berlin"
+
+# Basic auth (disabled by default - n8n has its own user auth)
+# n8n_basic_auth_active = true
+# n8n_basic_auth_user = "admin"
+# n8n_basic_auth_password = "secure-password"
