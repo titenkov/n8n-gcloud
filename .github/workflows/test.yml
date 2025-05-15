@@ -1,0 +1,76 @@
+name: Terraform Validate
+
+on:
+  pull_request:
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/terraform-validate.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform/**'
+
+jobs:
+  validate:
+    name: Validate Terraform
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: 🌿 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.6"
+
+      - name: 🎨 Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive
+        continue-on-error: true
+
+      - name: 📦 Terraform Init
+        id: init
+        run: terraform init -backend=false
+
+      - name: ✅ Terraform Validate
+        id: validate
+        run: terraform validate
+
+      - name: 💬 Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fmtOutcome = '${{ steps.fmt.outcome }}';
+            const initOutcome = '${{ steps.init.outcome }}';
+            const validateOutcome = '${{ steps.validate.outcome }}';
+            
+            const statusEmoji = (outcome) => outcome === 'success' ? '✅' : '❌';
+            
+            const body = `## Terraform Validation Results
+            
+            | Step | Status |
+            |------|--------|
+            | Format | ${statusEmoji(fmtOutcome)} ${fmtOutcome} |
+            | Init | ${statusEmoji(initOutcome)} ${initOutcome} |
+            | Validate | ${statusEmoji(validateOutcome)} ${validateOutcome} |
+            
+            ${fmtOutcome !== 'success' ? '> **Note:** Run `terraform fmt -recursive` to fix formatting issues.' : ''}
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: 🔍 Check Results
+        if: steps.fmt.outcome != 'success' || steps.validate.outcome != 'success'
+        run: exit 1
