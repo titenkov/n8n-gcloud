@@ -1,0 +1,68 @@
+name: Deploy n8n
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform action to perform'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+env:
+  TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+  TF_VAR_database_url: ${{ secrets.DATABASE_URL }}
+  TF_VAR_n8n_encryption_key: ${{ secrets.N8N_ENCRYPTION_KEY }}
+
+jobs:
+  deploy:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # Required for Workload Identity Federation
+    
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: 🌿 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📝 Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: 🔧 Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.6"
+
+      - name: 📦 Terraform Init
+        run: terraform init
+
+      - name: 📋 Terraform Plan
+        if: inputs.action == 'plan' || inputs.action == 'apply'
+        run: terraform plan -out=tfplan
+
+      - name: 🚀 Terraform Apply
+        if: inputs.action == 'apply'
+        run: terraform apply -auto-approve tfplan
+
+      - name: 💥 Terraform Destroy
+        if: inputs.action == 'destroy'
+        run: terraform destroy -auto-approve
+
+      - name: 🔗 Get Service URL
+        if: inputs.action == 'apply'
+        run: |
+          echo "## Deployment Complete! 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**n8n URL:** $(terraform output -raw service_url)" >> $GITHUB_STEP_SUMMARY
