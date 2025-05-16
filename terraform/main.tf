@@ -180,21 +180,19 @@ resource "google_cloud_run_v2_service" "n8n" {
         }
       }
 
-      # Startup probe for health checking
+      # Startup probe - use TCP since n8n doesn't have a health endpoint
       startup_probe {
-        initial_delay_seconds = 10
-        timeout_seconds       = 3
+        initial_delay_seconds = 0
+        timeout_seconds       = 240
         period_seconds        = 10
-        failure_threshold     = 3
-        http_get {
-          path = "/healthz"
+        failure_threshold     = 30
+        tcp_socket {
           port = 5678
         }
       }
 
       liveness_probe {
-        http_get {
-          path = "/healthz"
+        tcp_socket {
           port = 5678
         }
       }
