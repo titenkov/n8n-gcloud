@@ -192,7 +192,8 @@ resource "google_cloud_run_v2_service" "n8n" {
       }
 
       liveness_probe {
-        tcp_socket {
+        http_get {
+          path = "/healthz"
           port = 5678
         }
       }

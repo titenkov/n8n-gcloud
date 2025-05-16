@@ -45,8 +45,13 @@ jobs:
         with:
           terraform_version: "1.6"
 
+      - name: 🪣 Create State Bucket
+        run: |
+          gcloud storage buckets create gs://${{ secrets.GCP_PROJECT_ID }}-tf-state --location=europe-west1 --uniform-bucket-level-access || true
+        continue-on-error: true
+
       - name: 📦 Terraform Init
-        run: terraform init
+        run: terraform init -backend-config="bucket=${{ secrets.GCP_PROJECT_ID }}-tf-state"
 
       - name: 📋 Terraform Plan
         if: inputs.action == 'plan' || inputs.action == 'apply'
