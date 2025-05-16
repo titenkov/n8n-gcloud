@@ -1,3 +1,8 @@
+# Data source to get the project number
+data "google_project" "project" {
+  project_id = var.gcp_project_id
+}
+
 # -----------------------------------------------------------------------------
 # Enable Required APIs
 # -----------------------------------------------------------------------------
@@ -105,6 +110,7 @@ resource "google_cloud_run_v2_service" "n8n" {
           memory = var.cloud_run_memory
         }
         startup_cpu_boost = true
+        cpu_idle          = true # "false" to allocate CPU even outside of requests (required for triggers)
       }
 
       # Database configuration (using external Postgres)
@@ -143,6 +149,26 @@ resource "google_cloud_run_v2_service" "n8n" {
       env {
         name  = "N8N_PROTOCOL"
         value = "https"
+      }
+
+      env {
+        name  = "N8N_HOST"
+        value = "${var.service_name}-${data.google_project.project.number}.${var.gcp_region}.run.app"
+      }
+
+      env {
+        name  = "WEBHOOK_URL"
+        value = "https://${var.service_name}-${data.google_project.project.number}.${var.gcp_region}.run.app"
+      }
+
+      env {
+        name  = "N8N_EDITOR_BASE_URL"
+        value = "https://${var.service_name}-${data.google_project.project.number}.${var.gcp_region}.run.app"
+      }
+
+      env {
+        name  = "N8N_PROXY_HOPS"
+        value = "1"
       }
 
       env {

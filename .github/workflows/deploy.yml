@@ -47,8 +47,12 @@ jobs:
 
       - name: 🪣 Create State Bucket
         run: |
-          gcloud storage buckets create gs://${{ secrets.GCP_PROJECT_ID }}-tf-state --location=europe-west1 --uniform-bucket-level-access || true
-        continue-on-error: true
+          if ! gcloud storage buckets describe gs://${{ secrets.GCP_PROJECT_ID }}-tf-state --format="value(name)" > /dev/null 2>&1; then
+            echo "Creating state bucket..."
+            gcloud storage buckets create gs://${{ secrets.GCP_PROJECT_ID }}-tf-state --location=europe-west1 --uniform-bucket-level-access
+          else
+            echo "State bucket already exists."
+          fi
 
       - name: 📦 Terraform Init
         run: terraform init -backend-config="bucket=${{ secrets.GCP_PROJECT_ID }}-tf-state"
