@@ -21,8 +21,8 @@ resource "google_project_service" "iam" {
 # Secret Manager - Store Sensitive Configuration
 # -----------------------------------------------------------------------------
 
-resource "google_secret_manager_secret" "database_url" {
-  secret_id = "${var.service_name}-database-url"
+resource "google_secret_manager_secret" "db_password" {
+  secret_id = "${var.service_name}-db-password"
 
   replication {
     auto {}
@@ -31,9 +31,9 @@ resource "google_secret_manager_secret" "database_url" {
   depends_on = [google_project_service.secretmanager]
 }
 
-resource "google_secret_manager_secret_version" "database_url" {
-  secret      = google_secret_manager_secret.database_url.id
-  secret_data = var.database_url
+resource "google_secret_manager_secret_version" "db_password" {
+  secret      = google_secret_manager_secret.db_password.id
+  secret_data = var.db_password
 }
 
 resource "google_secret_manager_secret" "encryption_key" {
@@ -62,8 +62,8 @@ resource "google_service_account" "n8n" {
   depends_on = [google_project_service.iam]
 }
 
-resource "google_secret_manager_secret_iam_member" "database_url_accessor" {
-  secret_id = google_secret_manager_secret.database_url.secret_id
+resource "google_secret_manager_secret_iam_member" "db_password_accessor" {
+  secret_id = google_secret_manager_secret.db_password.secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.n8n.email}"
 }
@@ -105,7 +105,7 @@ resource "google_cloud_run_v2_service" "n8n" {
           memory = var.cloud_run_memory
         }
         startup_cpu_boost = true
-        cpu_idle          = true # "false" to allocate CPU even outside of requests (required for triggers)
+        cpu_idle          = false # Allocate CPU even outside of requests (required for triggers)
       }
 
       # Database configuration (using external Postgres)
@@ -115,10 +115,30 @@ resource "google_cloud_run_v2_service" "n8n" {
       }
 
       env {
-        name = "DATABASE_URL"
+        name  = "DB_POSTGRESDB_HOST"
+        value = var.db_host
+      }
+
+      env {
+        name  = "DB_POSTGRESDB_PORT"
+        value = var.db_port
+      }
+
+      env {
+        name  = "DB_POSTGRESDB_DATABASE"
+        value = var.db_name
+      }
+
+      env {
+        name  = "DB_POSTGRESDB_USER"
+        value = var.db_user
+      }
+
+      env {
+        name = "DB_POSTGRESDB_PASSWORD"
         value_source {
           secret_key_ref {
-            secret  = google_secret_manager_secret.database_url.secret_id
+            secret  = google_secret_manager_secret.db_password.secret_id
             version = "latest"
           }
         }
@@ -186,7 +206,7 @@ resource "google_cloud_run_v2_service" "n8n" {
         }
       }
 
-      # Startup probe - use TCP since n8n doesn't have a health endpoint
+      # Startup probe
       startup_probe {
         initial_delay_seconds = 15
         timeout_seconds       = 5
@@ -214,12 +234,12 @@ resource "google_cloud_run_v2_service" "n8n" {
 
   depends_on = [
     google_project_service.run,
-    google_secret_manager_secret_iam_member.database_url_accessor,
+    google_secret_manager_secret_iam_member.db_password_accessor,
     google_secret_manager_secret_iam_member.encryption_key_accessor
   ]
 }
 
-# Allow public access to the service (n8n handles its own auth)
+# Allow public access to the service
 resource "google_cloud_run_v2_service_iam_member" "public_invoker" {
   project  = google_cloud_run_v2_service.n8n.project
   location = google_cloud_run_v2_service.n8n.location

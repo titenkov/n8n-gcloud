@@ -7,8 +7,31 @@ variable "gcp_project_id" {
   type        = string
 }
 
-variable "database_url" {
-  description = "PostgreSQL connection URL (e.g., from NeonDB or Supabase)"
+# --- Database (External) --- #
+
+variable "db_host" {
+  description = "Database host"
+  type        = string
+}
+
+variable "db_port" {
+  description = "Database port"
+  type        = string
+  default     = "5432"
+}
+
+variable "db_name" {
+  description = "Database name"
+  type        = string
+}
+
+variable "db_user" {
+  description = "Database user"
+  type        = string
+}
+
+variable "db_password" {
+  description = "Database password"
   type        = string
   sensitive   = true
 }

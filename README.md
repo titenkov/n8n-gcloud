@@ -59,26 +59,6 @@ gcloud iam workload-identity-pools providers create-oidc "github-provider" \
   --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository" \
   --issuer-uri="https://token.actions.githubusercontent.com"
 
-# Create Service Account
-gcloud iam service-accounts create "github-actions" \
-  --display-name="GitHub Actions"
-
-# Grant permissions to Service Account
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:github-actions@${PROJECT_ID}.iam.gserviceaccount.com" \
-  --role="roles/run.admin"
-
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:github-actions@${PROJECT_ID}.iam.gserviceaccount.com" \
-  --role="roles/secretmanager.admin"
-
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:github-actions@${PROJECT_ID}.iam.gserviceaccount.com" \
-  --role="roles/storage.admin"
-
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:github-actions@${PROJECT_ID}.iam.gserviceaccount.com" \
-  --role="roles/iam.serviceAccountAdmin"
 
 gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member="serviceAccount:github-actions@${PROJECT_ID}.iam.gserviceaccount.com" \
@@ -104,7 +84,10 @@ Go to **Settings → Secrets and variables → Actions** and add:
 | `GCP_PROJECT_ID` | Your GCP project ID |
 | `GCP_WORKLOAD_IDENTITY_PROVIDER` | `projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/providers/github-provider` |
 | `GCP_SERVICE_ACCOUNT` | `github-actions@PROJECT_ID.iam.gserviceaccount.com` |
-| `DATABASE_URL` | Your PostgreSQL connection string |
+| `DB_HOST` | Database host (e.g., `ep-xy.eu-central-1.aws.neon.tech`) |
+| `DB_NAME` | Database name (e.g., `neondb`) |
+| `DB_USER` | Database username |
+| `DB_PASSWORD` | Database password |
 | `N8N_ENCRYPTION_KEY` | Generate with `openssl rand -hex 32` |
 
 #### Deploy
