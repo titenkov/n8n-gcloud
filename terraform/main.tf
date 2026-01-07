@@ -145,13 +145,13 @@ resource "google_cloud_run_v2_service" "n8n" {
       }
 
       env {
-         name  = "DB_POSTGRESDB_SSL"
-         value = "true"
+        name  = "DB_POSTGRESDB_SSL"
+        value = "true"
       }
 
       env {
-         name  = "DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED"
-         value = "false"
+        name  = "DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED"
+        value = "false"
       }
 
       # n8n encryption key
