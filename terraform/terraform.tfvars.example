@@ -11,6 +11,9 @@ db_password = "password"
 # Encryption key for n8n credentials storage (32 random bytes in hex)
 n8n_encryption_key = "0000000000000000000000000000000000000000000000000000000000000000"
 
+# Public URL for n8n instance (required for webhooks)
+n8n_host = "n8n.example.com"
+
 # Optional: Cloud Run configuration
 # gcp_region = "europe-west1"
 # service_name = "n8n"

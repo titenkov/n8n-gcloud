@@ -177,6 +177,11 @@ resource "google_cloud_run_v2_service" "n8n" {
       }
 
       env {
+        name  = "N8N_HOST"
+        value = var.n8n_host
+      }
+
+      env {
         name  = "N8N_PROXY_HOPS"
         value = "1"
       }

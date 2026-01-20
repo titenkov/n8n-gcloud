@@ -89,6 +89,7 @@ Go to **Settings → Secrets and variables → Actions** and add:
 | `DB_USER` | Database username |
 | `DB_PASSWORD` | Database password |
 | `N8N_ENCRYPTION_KEY` | Generate with `openssl rand -hex 32` |
+| `N8N_HOST` | Public URL for n8n (e.g., `n8n.titenkov.com`) |
 
 #### Deploy
 
@@ -139,6 +140,10 @@ Ensure your GCP service account has the required roles:
 ### Workflows not persisting
 
 Ensure `N8N_ENCRYPTION_KEY` is set correctly. If you change this key, you'll need to reconfigure all credentials in n8n.
+
+### Webhooks not working
+
+If webhooks are generating URLs with `localhost` instead of your actual domain, ensure the `n8n_host` variable is set in your `terraform.tfvars` file (e.g., `n8n_host = "n8n.example.com"`). This sets the `N8N_HOST` environment variable which tells n8n its public URL.
 
 ## License
 

@@ -106,3 +106,8 @@ variable "timezone" {
   type        = string
   default     = "UTC"
 }
+
+variable "n8n_host" {
+  description = "Public URL for n8n instance. Required for webhooks to work correctly."
+  type        = string
+}
